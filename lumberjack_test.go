@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -813,4 +815,72 @@ func notExist(path string, t testing.TB) {
 func exists(path string, t testing.TB) {
 	_, err := os.Stat(path)
 	assertUp(err == nil, t, 1, "expected file to exist, but got error from os.Stat: %v", err)
+}
+
+func TestCustomBackupNaming(t *testing.T) {
+	currentTime = fakeTime
+	megabyte = 1
+
+	dir := makeTempDir("TestCustomBackupNaming", t)
+	defer os.RemoveAll(dir)
+
+	nameFn := func(name string, local bool) string {
+		dir := filepath.Dir(name)
+		filename := filepath.Base(name)
+		t := currentTime()
+		if !local {
+			t = t.UTC()
+		}
+
+		timestamp := t.Format("2006010215")
+		return filepath.Join(dir, fmt.Sprintf("%s.%s", filename, timestamp))
+	}
+	timeFn := func(filename, prefix, ext string) (time.Time, error) {
+		if strings.HasSuffix(prefix, "-") {
+			prefix = prefix[:len(prefix)-1]
+		}
+		if !strings.HasPrefix(filename, prefix) {
+			return time.Time{}, errors.New("mismatched prefix")
+		}
+		if !strings.HasSuffix(filename, ext) {
+			return time.Time{}, errors.New("mismatched extension")
+		}
+		return time.Parse("2006010215", ext)
+	}
+	naming, err := NewBackupNaming(nameFn, timeFn)
+	if err != nil {
+		t.Fatalf("backup name and time parse mismatched error: %v", err)
+	}
+
+	filename := logFile(dir)
+	l := &Logger{
+		BackupNaming: naming,
+		Filename:     filename,
+		MaxSize:      10,
+		LocalTime:    true,
+	}
+	defer l.Close()
+	b := []byte("boo!")
+	n, err := l.Write(b)
+	isNil(err, t)
+	equals(len(b), n, t)
+
+	existsWithContent(filename, b, t)
+	fileCount(dir, 1, t)
+
+	newFakeTime()
+
+	b2 := []byte("foooooo!")
+	n, err = l.Write(b2)
+	isNil(err, t)
+	equals(len(b2), n, t)
+
+	// the old logfile should be moved aside and the main logfile should have
+	// only the last write in it.
+	existsWithContent(filename, b2, t)
+
+	// the backup file will use the current fake time and have the old contents.
+	backupfile := filepath.Join(dir, "foobar.log."+fakeTime().Format("2006010215"))
+	existsWithContent(backupfile, b, t)
+	fileCount(dir, 2, t)
 }

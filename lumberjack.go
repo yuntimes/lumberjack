@@ -77,6 +77,9 @@ var _ io.WriteCloser = (*Logger)(nil)
 //
 // If MaxBackups and MaxAge are both 0, no old log files will be deleted.
 type Logger struct {
+	// BackupNaming used to support a custom backup naming
+	*BackupNaming
+
 	// Filename is the file to write logs to.  Backup log files will be retained
 	// in the same directory.  It uses <processname>-lumberjack.log in
 	// os.TempDir() if empty.
@@ -113,6 +116,39 @@ type Logger struct {
 
 	millCh    chan bool
 	startMill sync.Once
+}
+
+// BackupNaming defines the backup name rule by defining the backup time format, name generator and parser
+type BackupNaming struct {
+	backupName   BackupNameFunc
+	timeFromName TimeFromNameFunc
+}
+
+// BackupNameFunc creates a new filename from the given name, inserting a timestamp
+// between the filename and the extension, using the local time if requested
+// (otherwise UTC).
+type BackupNameFunc func(name string, local bool) string
+
+// TimeFromNameFunc extracts the formatted time from the filename by stripping off
+// the filename's prefix and extension. This prevents someone's filename from
+// confusing time.parse.
+//
+// NOTE: implementation should expect the `prefix` with a traling letter `-`
+type TimeFromNameFunc func(filename, prefix, ext string) (time.Time, error)
+
+// NewBackupNaming creates a new backup naming rule
+func NewBackupNaming(nameFn BackupNameFunc, timeFn TimeFromNameFunc) (*BackupNaming, error) {
+	if nameFn == nil {
+		return nil, errors.New("invalid backup name function")
+	}
+	if timeFn == nil {
+		return nil, errors.New("invalid time from name function")
+	}
+
+	return &BackupNaming{
+		backupName:   nameFn,
+		timeFromName: timeFn,
+	}, nil
 }
 
 var (
@@ -218,7 +254,12 @@ func (l *Logger) openNew() error {
 		// Copy the mode off the old logfile.
 		mode = info.Mode()
 		// move the existing file
-		newname := backupName(name, l.LocalTime)
+		var newname string
+		if l.BackupNaming != nil {
+			newname = l.BackupNaming.backupName(name, l.LocalTime)
+		} else {
+			newname = backupName(name, l.LocalTime)
+		}
 		if err := os.Rename(name, newname); err != nil {
 			return fmt.Errorf("can't rename log file: %s", err)
 		}
@@ -431,6 +472,9 @@ func (l *Logger) oldLogFiles() ([]logInfo, error) {
 // the filename's prefix and extension. This prevents someone's filename from
 // confusing time.parse.
 func (l *Logger) timeFromName(filename, prefix, ext string) (time.Time, error) {
+	if l.BackupNaming != nil {
+		return l.BackupNaming.timeFromName(filename, prefix, ext)
+	}
 	if !strings.HasPrefix(filename, prefix) {
 		return time.Time{}, errors.New("mismatched prefix")
 	}
