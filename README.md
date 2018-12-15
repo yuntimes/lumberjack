@@ -10,7 +10,7 @@ thusly:
     import "gopkg.in/natefinch/lumberjack.v2"
 
 The package name remains simply lumberjack, and the code resides at
-https://github.com/natefinch/lumberjack under the v2.0 branch.
+https://github.com/yuntimes/lumberjack under the v2.0 branch.
 
 Lumberjack is intended to be one part of a logging infrastructure.
 It is not an all-in-one solution, but instead is a pluggable
@@ -72,11 +72,11 @@ log.SetOutput(&lumberjack.Logger{
 })
 
 // time-based rotation example
-log.SetOutput(NewTimedRotatingLogger(&Logger{
+log.SetOutput(lumberjack.NewTimedRotatingLogger(&Logger{
     BackupNaming: naming,
     Filename:     "/var/log/myapp/foo.log",
     MaxSize:      10000, // megabytes
-	LocalTime:    true,
+    LocalTime:    true,
 }, WithWhen("H"), WithInterval(2)))
 ```
 
