@@ -211,7 +211,7 @@ type TimedRotatingLogger struct {
 	// | "W0" - "W6" | Weekday (0=Monday)    | interval isn’t used. |
 	// | "midnight"  | Roll over at midnight | interval isn’t used. |
     When     string
-	Interval uint
+    Interval uint
 }
 ```
 
