@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yuntimes/lumberjack"
+	"gopkg.in/yuntimes/lumberjack.v2"
 )
 
 // To use lumberjack with the standard library's log package, just pass it into
