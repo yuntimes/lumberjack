@@ -145,7 +145,18 @@ func NewTimedRotatingLogger(logger *Logger, opts ...Option) *TimedRotatingLogger
 // tl.Write("xxx")
 type TimedRotatingLogger struct {
 	*Logger
-	When     string
+
+	// When specify the type of interval. The list of possible values
+	// | Value       | Description           | Note                 |
+	// |:-----------:|:---------------------:|:---------------------|
+	// | "S"         | Seconds               |                      |
+	// | "M"         | Minutes               |                      |
+	// | "H"         | Hours                 |                      |
+	// | "D"         | Days                  |                      |
+	// | "W0" - "W6" | Weekday (0=Monday)    | interval isn’t used. |
+	// | "midnight"  | Roll over at midnight | interval isn’t used. |
+	When string
+
 	Interval uint
 
 	lastWindow     string
