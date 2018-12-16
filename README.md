@@ -200,16 +200,16 @@ If the length of the write is greater than MaxSize, an error is returned.
 ```go
 type TimedRotatingLogger struct {
     *Logger
-    
-	// When specify the type of interval. The list of possible values
-	// | Value       | Description           | Note                 |
-	// |:-----------:|:---------------------:|:---------------------|
-	// | "S"         | Seconds               |                      |
-	// | "M"         | Minutes               |                      |
-	// | "H"         | Hours                 |                      |
-	// | "D"         | Days                  |                      |
-	// | "W0" - "W6" | Weekday (0=Monday)    | interval isn’t used. |
-	// | "midnight"  | Roll over at midnight | interval isn’t used. |
+
+    // When specify the type of interval. The list of possible values
+    // | Value       | Description           | Note                 |
+    // |:-----------:|:---------------------:|:---------------------|
+    // | "S"         | Seconds               |                      |
+    // | "M"         | Minutes               |                      |
+    // | "H"         | Hours                 |                      |
+    // | "D"         | Days                  |                      |
+    // | "W0" - "W6" | Weekday (0=Monday)    | interval isn’t used. |
+    // | "midnight"  | Roll over at midnight | interval isn’t used. |
     When     string
     Interval uint
 }

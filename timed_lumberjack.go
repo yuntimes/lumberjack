@@ -57,13 +57,15 @@ type Options struct {
 // Option defines the option func
 type Option func(*Options)
 
-// WithWhen set the when attr
-// - "S": Seconds
-// - "M": Minutes
-// - "H": Hours
-// - "D": Days
-// - "W0" - "W6": Weekday (0=Monday)
-// - "midnight": Roll over at midnight
+// WithWhen set the When attribute, which specify the type of interval. The list of possible values
+// | Value       | Description           | Note                 |
+// |:-----------:|:---------------------:|:---------------------|
+// | "S"         | Seconds               |                      |
+// | "M"         | Minutes               |                      |
+// | "H"         | Hours                 |                      |
+// | "D"         | Days                  |                      |
+// | "W0" - "W6" | Weekday (0=Monday)    | interval isn’t used. |
+// | "midnight"  | Roll over at midnight | interval isn’t used. |
 func WithWhen(when string) Option {
 	return func(opts *Options) {
 		opts.When = when
