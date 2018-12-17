@@ -20,7 +20,7 @@ var (
 		"W4":       func(interval uint) string { return weekdayWindow(time.Friday) },
 		"W5":       func(interval uint) string { return weekdayWindow(time.Saturday) },
 		"W6":       func(interval uint) string { return weekdayWindow(time.Sunday) },
-		"midnight": func(interval uint) string { return time.Now().Format("2006-01-02") },
+		"midnight": func(interval uint) string { return currentTime().Format("2006-01-02") },
 	}
 )
 

@@ -77,7 +77,7 @@ log.SetOutput(lumberjack.NewTimedRotatingLogger(&Logger{
     Filename:     "/var/log/myapp/foo.log",
     MaxSize:      10000, // megabytes
     LocalTime:    true,
-}, WithWhen("H"), WithInterval(2)))
+}, lumberjack.WithWhen("H"), lumberjack.WithInterval(2)))
 ```
 
 ## type Logger
